@@ -98,7 +98,7 @@ def build_signal_ui(signal_type: str):
     elif signal_type == "Triangular":
         col1, col2, col3 = st.columns(3)
         with col1:
-            start = st.number_input("Start time", -5.0, 5.0, 0.0, 0.1)
+            start = st.number_input("Start time", -5.0, 5.0, -1.0, 0.1)
         with col2:
             end = st.number_input("End time", -5.0, 5.0, 1.0, 0.1)
         with col3:

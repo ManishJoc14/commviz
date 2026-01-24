@@ -1,92 +1,111 @@
 import streamlit as st
-import numpy as np
-from core.signals import (
-    time_axis,
-    unit_impulse,
-    unit_step,
-    ramp,
-    exponential,
-    sinusoid,
-)
-from core.basic_operations import (
-    time_shift,
-    time_scale,
-    time_reverse,
-    amplitude_scale,
-)
+from core.signals import get_available_signals, get_signal_modes
+import copy
+
+from ui.build_signals import build_signal_ui
 from ui.plots import plot_signal
+from utils.time_axis import TimeAxis
 
 
 def run_basic_operations_module():
-    st.subheader("Operations on Signals")
+    # Mode Selection
+    # --------------------------------
+    signal_mode = st.radio(
+        "Signal Mode",
+        get_signal_modes(),
+        index=0,
+        horizontal=True,
+    )
 
-    signal_mode = st.radio("Signal Mode", ("Continuous", "Discrete"), horizontal=True)
+    col0, col1, col2, col3 = st.columns(4)
 
-    col1, col2 = st.columns(2)
+    with col0:
+        signal_type = st.selectbox("Select Signal", get_available_signals())
+
     with col1:
-        t_min = st.number_input("Start Time", value=-1.0, step=0.1, format="%.5f")
+        t_min = st.number_input("Start Time", value=-5.0, step=0.1, format="%.5f")
+
     with col2:
-        t_max = st.number_input("End Time", value=1.0, step=0.1, format="%.5f")
+        t_max = st.number_input("End Time", value=5.0, step=0.1, format="%.5f")
+
+    with col3:
+        fs = st.number_input(
+            "Sampling Frequency (Hz)",
+            min_value=1,
+            max_value=50000,
+            value=1000,
+            step=100,
+            help="Too high frequency may crash the app",
+        )
+
     if t_min >= t_max:
         st.warning("Start time must be less than end time.")
         return
 
-    signal_type = st.selectbox(
-        "Select Signal",
-        ["Unit Impulse", "Unit Step", "Ramp", "Exponential", "Sinusoidal"],
-    )
+    # Time Axis Generation
+    # --------------------------------
+    time = TimeAxis(t_min=t_min, t_max=t_max, dt=1 / fs, signal_mode=signal_mode)
+    t = time.generate()
 
-    # Generate base signal
-    if signal_mode == "Discrete":
-        t = np.arange(t_min, t_max, (t_max - t_min) / 50)
-    else:
-        t = time_axis(t_min, t_max)
+    # Signal Construction
+    # --------------------------------
+    signal = build_signal_ui(signal_type)
 
-    if signal_type == "Unit Impulse":
-        x = unit_impulse(t)
-    elif signal_type == "Unit Step":
-        x = unit_step(t)
-    elif signal_type == "Ramp":
-        x = ramp(t)
-    elif signal_type == "Exponential":
-        a = st.slider("Exponential Constant (a)", -5.0, 5.0, 1.0, 0.1)
-        x = exponential(t, a)
-    elif signal_type == "Sinusoidal":
-        amplitude = st.slider("Amplitude", 0.1, 5.0, 1.0, 0.1)
-        frequency = st.slider("Frequency (Hz)", 0.1, 10.0, 1.0, 0.1)
-        phase = st.slider("Phase (rad)", -np.pi, np.pi, 0.0, 0.1)
-        x = sinusoid(t, amplitude, frequency, phase)
+    st.markdown("-----")
+    st.markdown("#### Basic Transformations")
+    col_s1, col_s2, col_s3, col_s4 = st.columns(4)
 
-    st.markdown("### Signal Transformations")
-    col1, col2 = st.columns(2)
-    with col1:
-        shift = st.number_input("Time Shift", value=0.0, step=0.1)
-        scale = st.number_input("Time Scale", value=1.0, step=0.1, min_value=0.01)
-    with col2:
-        reverse = st.checkbox("Time Reverse")
-        amp_scale = st.number_input("Amplitude Scale", value=1.0, step=0.1)
+    with col_s1:
+        shift_time = st.number_input("Time Shift (τ)", value=0.0, step=0.1)
+    with col_s2:
+        time_scale_factor = st.number_input("Time Scaling (a)", value=1.0, step=0.1)
+    with col_s3:
+        fold_signal = st.checkbox("Time Inversion (-t)", value=False)
 
-    # Apply operations
-    t_new, x_new = t.copy(), x.copy()
-    t_new, x_new = time_shift(x_new, t_new, shift)
-    t_new, x_new = time_scale(x_new, t_new, scale)
-    if reverse:
-        t_new, x_new = time_reverse(x_new, t_new)
-    x_new = amplitude_scale(x_new, amp_scale)
+    # Apply Transformations
+    # ------------------------------
+    transformed_signal = copy.deepcopy(signal)
 
-    # Plot original and transformed signals
-    st.plotly_chart(
-        plot_signal(
-            t, x, title="Original Signal", discrete=(signal_mode == "Discrete")
-        ),
-        width='stretch',
-    )
-    st.plotly_chart(
-        plot_signal(
-            t_new,
-            x_new,
-            title="Transformed Signal",
-            discrete=(signal_mode == "Discrete"),
-        ),
-        width='stretch',
-    )
+    if shift_time != 0.0:
+        transformed_signal = transformed_signal.time_shift(shift_time)
+
+    if time_scale_factor != 1.0:
+        transformed_signal = transformed_signal.time_scale(time_scale_factor)
+
+    if fold_signal:
+        transformed_signal = transformed_signal.fold()
+
+    # Output
+    # --------------------------------
+    st.markdown("-----")
+    y_original = signal.evaluate(t)
+    y_transformed = transformed_signal.evaluate(t)
+    col_left, _, col_right = st.columns([1, 0.1, 1])
+
+    # Left column: Input Signal
+    # ------------------------
+    with col_left:
+        st.text("Input Signal")
+
+        fig = plot_signal(
+            t,
+            y_original,
+            title=f"{signal._base_formula}",
+            discrete=True if signal_mode == "Discrete" else False,
+            autoscale=True,
+        )
+        st.plotly_chart(fig, use_container_width=True, key="input_signal")
+
+    # Right column: Output Plot
+    # ------------------------
+    with col_right:
+        st.text("Transformed Signal")
+
+        fig = plot_signal(
+            t,
+            y_transformed,
+            title=f"{transformed_signal.formula}",
+            discrete=True if signal_mode == "Discrete" else False,
+            autoscale=True,
+        )
+        st.plotly_chart(fig, use_container_width=True, key="transformed_signal")

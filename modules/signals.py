@@ -45,11 +45,7 @@ def run_signals_module():
 
     # Time Axis Generation
     # --------------------------------
-    if signal_mode == "Discrete":
-        time = TimeAxis(t_min=t_min, t_max=t_max, dt=1 / fs, signal_mode=signal_mode)
-    else:
-        time = TimeAxis(t_min=t_min, t_max=t_max, dt=1 / fs)
-
+    time = TimeAxis(t_min=t_min, t_max=t_max, dt=1 / fs, signal_mode=signal_mode)
     t = time.generate()
 
     # Signal Construction

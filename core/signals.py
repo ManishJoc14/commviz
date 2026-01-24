@@ -1,4 +1,5 @@
 import numpy as np
+import re
 
 
 class Signal:
@@ -7,48 +8,78 @@ class Signal:
     def __init__(self, func, name, formula, params=None):
         self.func = func
         self.name = name
-        self.formula = formula
+        self._base_formula = formula
         self.params = params or {}
 
+        # Transformation state
+        self._time_shift = 0.0  # τ
+        self._time_scale = 1.0  # a
+        self._fold = False  # x(-t)
+
+    @property
+    def formula(self):
+        """Dynamic formula reflecting transformations"""
+        t_str = "t"
+
+        # Fold (inversion)
+        if self._fold:
+            t_str = f"-{t_str}"  # no extra parentheses if not needed
+
+        # Time scale
+        if self._time_scale != 1.0:
+            t_str = f"{self._time_scale}*{t_str}"
+
+        # Time shift
+        if self._time_shift != 0.0:
+            sign = "-" if self._time_shift > 0 else "+"
+            t_str = f"{t_str}{sign}{abs(self._time_shift)}"
+
+        # Replace standalone t in base formula
+        formula_str = re.sub(r"\bt\b", t_str, self._base_formula)
+
+        return f"{formula_str}"
+
     def evaluate(self, t):
-        return self.func(t, **self.params)
+        # shift
+        t_shifted = t - self._time_shift
+
+        # time scale
+        t_scaled = self._time_scale * t_shifted
+
+        # fold
+        if self._fold:
+            t_final = -t_scaled
+        else:
+            t_final = t_scaled
+
+        return self.func(t_final, **self.params)
+
+    # -------- Transformations --------
+    def time_shift(self, tau):
+        self._time_shift += tau
+        return self
+
+    def time_scale(self, a):
+        self._time_scale *= a
+        return self
+
+    def fold(self):
+        self._fold = not self._fold
+        return self
 
     # -------- Algebra --------
     def __add__(self, other):
         return Signal(
             lambda t: self.evaluate(t) + other.evaluate(t),
             name=f"({self.name}+{other.name})",
-            formula=f"{self.formula} + {other.formula}",
+            formula=f"({self.formula}) + ({other.formula})",
         )
 
     def __mul__(self, other):
         return Signal(
             lambda t: self.evaluate(t) * other.evaluate(t),
             name=f"({self.name}*{other.name})",
-            formula=f"{self.formula} · {other.formula}",
-        )
-
-    # -------- Transforms --------
-    def shift(self, tau):
-        return Signal(
-            lambda t: self.evaluate(t - tau),
-            name=f"{self.name}(t-{tau})",
-            formula=f"{self.formula.replace('t', f'(t-{tau})')}",
-        )
-
-    def scale(self, k):
-        return Signal(
-            lambda t: k * self.evaluate(t),
-            name=f"{k}{self.name}",
-            formula=f"{k}·({self.formula})",
-        )
-
-    def time_scale(self, a):
-        """Time scaling: x(at)"""
-        return Signal(
-            lambda t: self.evaluate(a * t),
-            name=f"{self.name}({a}t)",
-            formula=f"{self.formula.replace('t', f'({a}t)')}",
+            formula=f"({self.formula}) · ({other.formula})",
         )
 
 
@@ -127,7 +158,7 @@ def rectangular_pulse(start=-1.0, end=1.0, amplitude=1.0):
             (t >= start) & (t <= end), amplitude, 0.0
         ),
         name="Rectangular Pulse",
-        formula=f"{amplitude}·rect(t) , [{start},{end}]",
+        formula=f"{amplitude}·rect(t)",
         params={"start": start, "end": end, "amplitude": amplitude},
     )
 
@@ -141,7 +172,7 @@ def triangular_wave(start=0.0, end=1.0, amplitude=1.0):
     return Signal(
         func=tri,
         name="Triangular",
-        formula=f"tri(t) , [{start},{end}]",
+        formula=f"{amplitude}·tri(t)",
         params={"start": start, "end": end, "amplitude": amplitude},
     )
 
