@@ -43,12 +43,14 @@ def build_signal_ui(signal_type: str):
     # Exponential
     # -------------------------------
     elif signal_type == "Exponential":
-        col1, col2 = st.columns([1, 2])
+        col1, col2 = st.columns([1, 1])
 
         with col1:
             a = st.slider("Exponent (a)", -5.0, 5.0, 1.0, 0.1)
+        with col2:
+            c = st.slider("Constant (a)", -5.0, 5.0, 1.0, 0.1)
 
-        return exponential(a)
+        return exponential(c, a)
 
     # Sinusoidal
     # -------------------------------

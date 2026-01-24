@@ -81,11 +81,11 @@ def ramp():
     )
 
 
-def exponential(a=1.0):
+def exponential(c=1.0, a=1.0):
     return Signal(
-        func=lambda t, a=a: np.exp(a * t) * (t >= 0),
+        func=lambda t, c=c, a=a: c * np.exp(a * t) * (t >= 0),
         name="Exponential",
-        formula=f"e^({a}t)×u(t)",
+        formula=f"{c}e^({a}t)",
         params={"a": a},
     )
 

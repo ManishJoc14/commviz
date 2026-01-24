@@ -8,15 +8,13 @@ st.sidebar.markdown("---")
 signal_topic = st.sidebar.radio(
     "Signal Analysis",
     [
-        "Signal Foundations",
-        "Signal Operations",
-        "Systems",
-        "System Properties",
-        "Impulse Respnose",
+        "Signal Fundamentals",
+        "Basic Signal Operations",
+        "Energy and Power Signals",
         "Convolution",
     ],
     key="signal_analysis",
 )
 
-if signal_topic == "Signal Foundations":
+if signal_topic == "Signal Fundamentals":
     run_signals_module()
