@@ -12,10 +12,10 @@ Contributions should improve correctness, clarity, performance, or educational v
 
 Before writing any code:
 
-* Open a GitHub Issue
-* Clearly describe the bug, feature, or improvement
-* Add screenshots, references, or examples if relevant
-* Suggest a possible technical approach (optional but recommended)
+- Open a GitHub Issue
+- Clearly describe the bug, feature, or improvement
+- Add screenshots, references, or examples if relevant
+- Suggest a possible technical approach (optional but recommended)
 
 **Direct PRs without an issue are not accepted** (except trivial fixes like typos or docs formatting).
 
@@ -23,15 +23,17 @@ Before writing any code:
 
 ### 2. Get the Issue Claimed
 
-* Comment on the issue to request assignment
-* Maintainer will assign the issue
-* Only one contributor per issue (to prevent duplicate work)
+- Comment on the issue to request assignment
+- Maintainer will assign the issue
+- Only one contributor per issue (to prevent duplicate work)
 
 ---
 
-### 3. Create a Branch
+### 3. Create a Branch in your Fork
 
 Create a new branch from `main`:
+
+Always keep updating your main branch from upstream fork.
 
 ```bash
 git checkout -b feature/issue-<id>-short-name
@@ -69,9 +71,9 @@ Keep changes minimal and scoped to the issue.
 
 When ready:
 
-* Push your branch
-* Open a PR to `main`
-* Reference the issue number in the PR title or description
+- Push your branch
+- Open a PR to `main`
+- Reference the issue number in the PR title or description
 
 Example:
 
@@ -83,32 +85,32 @@ Fix: QPSK constellation scaling (#12)
 
 ## Contribution Rules
 
-* One issue → one PR
-* No unrelated changes in the same PR
-* Code must run locally without errors
-* Visualizations must be technically correct
-* No broken UI flows
+- One issue → one PR
+- No unrelated changes in the same PR
+- Code must run locally without errors
+- Visualizations must be technically correct
+- No broken UI flows
 
 ---
 
 ## What You Can Contribute
 
-* New Features visualizations
-* Notes in Existing Modules
-* UI/UX improvements
-* Performance optimizations
-* Documentation
-* Educational explanations
+- New Features visualizations
+- Notes in Existing Modules
+- UI/UX improvements
+- Performance optimizations
+- Documentation
+- Educational explanations
 
 ---
 
 ## Code Quality Standards
 
-* Clear variable naming
-* Modular functions
-* No hardcoded constants without explanation
-* Reusable components
-* No dead code
+- Clear variable naming
+- Modular functions
+- No hardcoded constants without explanation
+- Reusable components
+- No dead code
 
 ---
 
@@ -116,10 +118,10 @@ Fix: QPSK constellation scaling (#12)
 
 Maintainers may:
 
-* Reject low-quality PRs
-* Request changes
-* Close inactive issues
-* Reassign abandoned issues
+- Reject low-quality PRs
+- Request changes
+- Close inactive issues
+- Reassign abandoned issues
 
 ---
 
@@ -127,10 +129,10 @@ Maintainers may:
 
 This project prioritizes:
 
-* Technical correctness
-* Educational value
-* Clean architecture
-* Simplicity over complexity
+- Technical correctness
+- Educational value
+- Clean architecture
+- Simplicity over complexity
 
 If it doesn’t improve learning, correctness, or usability — it doesn’t belong here.
 
